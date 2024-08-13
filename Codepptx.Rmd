@@ -1,0 +1,1236 @@
+---
+title: "BÁO CÁO GIỮA KỲ GÓI 2 (UN DATA)"
+author: "SOFA"
+date: "2024-05-10"
+output:
+  beamer_presentation: default
+  powerpoint_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+```{r, echo=FALSE, results='hide'}
+#install.packages("countrycode")
+library(countrycode)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("xml2")
+library(xml2)
+#install.packages("rvest")
+library(rvest)
+base_url <- "https://data.un.org/Data.aspx?d=POP&f=tableCode%3a1%3brefYear%3a2000%2c2001%2c2002%2c2003%2c2004%2c2005%2c2006%2c2007%2c2008%2c2009%2c2010%2c2011%2c2012%2c2013%2c2014%2c2015%2c2016%2c2017%2c2018%2c2019%2c2020%2c2021%2c2022%3bareaCode%3a0%3bsexCode%3a1%2c2&c=2,3,6,8,10,12,13,14&s=_countryEnglishNameOrderBy:asc,refYear:desc,areaCode:asc&v="
+
+data_part_2 <- data.frame()  # Khởi tạo data frame rỗng
+
+for (i in 1:50) {
+  url <- paste0(base_url, i)
+  page <- read_html(url)
+  
+  # Trích xuất dữ liệu từ phần tử HTML (điều chỉnh CSS selector theo yêu cầu)
+  dataset_df <- page %>%
+    html_nodes("table") %>%
+    html_table(fill = TRUE)
+  
+  # Gộp dữ liệu vào data frame chính
+  if (!is.null(dataset_df[[2]])) {
+    data_part_2 <- rbind(data_part_2, dataset_df[[2]])
+  }
+}
+
+for (i in 51:100) {
+  url <- paste0(base_url, i)
+  page <- read_html(url)
+  
+  # Trích xuất dữ liệu từ phần tử HTML (điều chỉnh CSS selector theo yêu cầu)
+  dataset_df <- page %>%
+    html_nodes("table") %>%
+    html_table(fill = TRUE)
+  
+  # Gộp dữ liệu vào data frame chính
+  if (!is.null(dataset_df[[2]])) {
+    data_part_2 <- rbind(data_part_2, dataset_df[[2]])
+  }
+}
+
+for (i in 101:153) {
+  url <- paste0(base_url, i)
+  page <- read_html(url)
+  
+  # Trích xuất dữ liệu từ phần tử HTML (điều chỉnh CSS selector theo yêu cầu)
+  dataset_df <- page %>%
+    html_nodes("table") %>%
+    html_table(fill = TRUE)
+  
+  # Gộp dữ liệu vào data frame chính
+  if (!is.null(dataset_df[[2]])) {
+    data_part_2 <- rbind(data_part_2, dataset_df[[2]])
+  }
+}
+for (i in 154:200) {
+  url <- paste0(base_url, i)
+  page <- read_html(url)
+  
+  # Trích xuất dữ liệu từ phần tử HTML (điều chỉnh CSS selector theo yêu cầu)
+  dataset_df <- page %>%
+    html_nodes("table") %>%
+    html_table(fill = TRUE)
+  
+  # Gộp dữ liệu vào data frame chính
+  if (!is.null(dataset_df[[2]])) {
+    data_part_2 <- rbind(data_part_2, dataset_df[[2]])
+  }
+}
+
+for (i in 201:230) {
+  url <- paste0(base_url, i)
+  page <- read_html(url)
+  
+  # Trích xuất dữ liệu từ phần tử HTML (điều chỉnh CSS selector theo yêu cầu)
+  dataset_df <- page %>%
+    html_nodes("table") %>%
+    html_table(fill = TRUE)
+  
+  # Gộp dữ liệu vào data frame chính
+  if (!is.null(dataset_df[[2]])) {
+    data_part_2 <- rbind(data_part_2, dataset_df[[2]])
+  }
+}
+genderdf <- data_part_2
+#Xử lí genderdf
+genderdf <- genderdf[, -c(3,5:7,9)]
+colnames(genderdf)[colnames(genderdf) == "Value"] <- "Gender"
+colnames(genderdf)[colnames(genderdf) == "Country or Area"] <- "Country"
+head(genderdf,5)
+
+newdf <- genderdf[, -3]
+head(newdf, 5)
+
+genderdf <- data_part_2
+genderdf <- genderdf[, -c(3,5:7,9)]
+colnames(genderdf)[colnames(genderdf) == "Value"] <- "Gender"
+head(genderdf,5)
+
+genderdf1 <- data.frame(genderdf)
+#Kiểm tra liệu có giá trị null hay na
+column_names <- names(genderdf1)
+print(column_names)
+
+for (col_name in column_names) {
+  num_null <- sum(is.null(genderdf1[[col_name]]))
+  num_na <- sum(is.na(genderdf1[[col_name]]))
+  
+  print(paste("Column:", col_name))
+  print(paste("Number of null:", num_null))
+  print(paste("Number of NA:", num_na))
+  print("")
+}
+library(countrycode)
+
+genderdf$Country <- genderdf$`Country or Area`
+genderdf11 <- data.frame(genderdf1)
+genderdf11$Region <- countrycode(genderdf11$Country, "country.name", "region")
+
+genderdf11$Region <- ifelse(genderdf11$Country %in% c("Mayotte", "Reunion"), "Sub-Saharan Africa", genderdf11$Region)
+genderdf11$Region <- ifelse(genderdf11$Country %in% c("Saint Helena ex. dep.", "Saint Helena: Ascension", "Saint Helena: Tristan da Cunha"), "Sub-Saharan Africa", genderdf11$Region)
+genderdf11$Region <- ifelse(genderdf11$Country %in% c("Wallis and Futuna Islands"), "East Asia & Pacific", genderdf11$Region)
+
+library(dplyr)
+grouped_genderdf11 <- genderdf11 %>%
+  group_by(Region) %>%
+  summarize(Num_Countries = n())
+
+print(grouped_genderdf11)
+merged_genderdf <- left_join(genderdf11, grouped_genderdf11, by = "Region")
+merged_genderdf
+
+merged_genderdf <- merged_genderdf %>%
+  mutate(Gender = gsub(",", "", Gender)) %>%
+  mutate(Gender = as.numeric(Gender))
+
+str(merged_genderdf)
+summary(merged_genderdf)
+
+gender_male <- filter(merged_genderdf, Sex == "Male")
+head(gender_male)
+
+gender_female <- filter(merged_genderdf, Sex == "Female")
+head(gender_female)
+
+gender_dffull <- rbind(gender_male, gender_female)
+gender_region <- gender_dffull[, c("Region", "Year", "Sex", "Gender")]
+
+library(tidyverse)
+male <- gender_region%>%
+  group_by(Region, Year, Sex = "Female") %>%
+  summarise(Gender = sum(Gender))
+ggplot(male,
+       aes(x = Gender,
+           y = factor(Region))) +
+  geom_col(fill = "coral1")
+
+female <- gender_region %>%
+  group_by(Region, Year, Sex = "Female") %>%
+  summarise(Gender = sum(Gender))
+ggplot(female,
+       aes(x = -Gender,
+           y = factor(Region))) +
+  geom_col(fill = "aquamarine3")
+
+male_female <- filter(gender_region, Year == 2021)
+male_female_pyramid <- male_female %>%
+  group_by(Region, Year, Sex) %>%
+  summarise(Gender = sum(Gender)) %>%
+  mutate(
+    Gender = case_when(
+      Sex == "Female" ~ -Gender,
+      TRUE ~ Gender
+    ),
+    Region = as_factor(Region)
+  ) %>%
+  mutate(Gender = Gender / 1e6)
+male_female_pyramid
+
+library(ggplot2)
+
+ggplot(male_female_pyramid,
+       aes(x = Gender,
+           y = Region,
+           fill = Sex)) +
+  geom_col() +
+  geom_text(data = subset(male_female_pyramid, Sex == "Female"),
+            aes(label = Gender),
+            position = position_nudge(x = -0.05, y = 0),
+            size = 3) +
+  geom_text(data = subset(male_female_pyramid, Sex == "Male"),
+            aes(label = Gender),
+            position = position_nudge(x = 0.05, y = 0),
+            size = 3) +
+  theme(text = element_text(size = 4))
+
+#East Asia & Pacific
+gender_country <- filter(gender_dffull, Region == "East Asia & Pacific", Year == "2021")
+print(gender_country)
+
+filtered_data <- gender_dffull %>%
+  filter(Region == "East Asia & Pacific", Year == "2021") %>%
+  group_by(Country.or.Area, Year, Sex) %>%
+  summarise(Gender = sum(Gender))
+
+print(filtered_data)
+
+summary(filtered_data)
+
+ggplot(filtered_data, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in East Asia & Pacific (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+#QG CÓ GEN NHỎ HƠN SING
+singapore_gender <- filtered_data %>%
+  filter(Country.or.Area == "Singapore") %>%
+  pull(Gender)
+
+lowerthanSing <- filtered_data %>%
+  filter(Gender < singapore_gender) %>%
+  select(Country.or.Area, Year, Sex, Gender)
+
+print(lowerthanSing)
+
+#Europe & Central Asia
+EuropeCentralAsia <- filter(gender_dffull, Region == "Europe & Central Asia", Year == "2021")
+print(EuropeCentralAsia)
+
+EuropeCentralAsia <- gender_dffull %>%
+  filter(Region == "Europe & Central Asia", Year == "2021") %>%
+  group_by(Country.or.Area, Year, Sex) %>%
+  summarise(Gender = sum(Gender))
+
+print(EuropeCentralAsia)
+
+ggplot(EuropeCentralAsia, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in Europe Central Asia (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+#Latin America & Caribbean
+LatinAmericaCaribbean <- filter(gender_dffull, Region == "Latin America & Caribbean", Year == "2021")
+print(LatinAmericaCaribbean)
+
+LatinAmericaCaribbean <- gender_dffull %>%
+  filter(Region == "Latin America & Caribbean", Year == "2021") %>%
+  group_by(Country.or.Area, Year, Sex) %>%
+  summarise(Gender = sum(Gender))
+
+print(LatinAmericaCaribbean)
+
+ggplot(LatinAmericaCaribbean, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in Latin America & Caribbean (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+#Middle East & North Africa
+MiddleEastNorthAfrica <- filter(gender_dffull, Region == "Middle East & North Africa", Year == "2021")
+print(LatinAmericaCaribbean)
+
+MiddleEastNorthAfrica <- gender_dffull %>%
+  filter(Region == "Middle East & North Africa", Year == "2021") %>%
+  group_by(Country.or.Area, Year, Sex) %>%
+  summarise(Gender = sum(Gender))
+
+print(MiddleEastNorthAfrica)
+
+ggplot(MiddleEastNorthAfrica, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in Middle East & North Africa (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+#North America
+NorthAmerica <- filter(gender_dffull, Region == "North America", Year == "2021")
+print(NorthAmerica)
+
+NorthAmerica <- gender_dffull %>%
+  filter(Region == "North America", Year == "2021") %>%
+  group_by(Country.or.Area, Year, Sex) %>%
+  summarise(Gender = sum(Gender))
+
+print(NorthAmerica)
+
+ggplot(NorthAmerica, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in North America (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+#South Asia
+SouthAsia <- filter(gender_dffull, Region == "South Asia", Year == "2021")
+print(SouthAsia)
+
+SouthAsia <- gender_dffull %>%
+  filter(Region == "South Asia", Year == "2021") %>%
+  group_by(Country.or.Area, Year, Sex) %>%
+  summarise(Gender = sum(Gender))
+
+print(SouthAsia)
+
+ggplot(SouthAsia, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in South Asia (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+#Sub-Saharan Africa
+SubSaharanAfrica <- filter(gender_dffull, Region == "Sub-Saharan Africa", Year == "2021")
+print(SubSaharanAfrica)
+
+SubSaharanAfrica <- gender_dffull %>%
+  filter(Region == "Sub-Saharan Africa", Year == "2021") %>%
+  group_by(Country.or.Area, Year, Sex) %>%
+  summarise(Gender = sum(Gender))
+
+print(SubSaharanAfrica)
+
+ggplot(SubSaharanAfrica, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in Sub-Saharan Africa (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+#5 QUỐC GIA CÓ FEMALE CAO NHẤT THẾ GIỚI
+female_counts <- merged_genderdf %>%
+  filter(Sex == "Female") %>%
+  group_by(Country.or.Area) %>%
+  summarize(Total_Females = sum(Gender))
+female_counts <- female_counts %>%
+  arrange(desc(Total_Females))
+top_countries <- head(female_counts, 5)
+chart <- ggplot(top_countries, aes(x = Country.or.Area, y = Total_Females)) +
+  geom_col(fill = "coral2") +
+  geom_text(aes(label = Total_Females), vjust = -0.5, color = "black", size = 3.5) +
+  labs(title = "Top 5 Countries with Highest Number of Females", x = "Country", y = "Total Females")
+
+print(chart)
+
+library(plotly)
+library(ggplot2)
+library(shiny)
+
+#WORLD MAP 
+world_map <- map_data("world")
+
+mapseat <- subset(merged_genderdf, Year =="2020")
+
+p <- plot_ly(merged_genderdf, z = ~Gender, text = ~paste("Country: ", Country.or.Area, "<br>Female: ", Gender),
+             locations = ~Country.or.Area, type = "choropleth", locationmode = "country names") %>%
+  layout(geo = list(scope = "world"))
+
+p
+
+
+#GDP
+
+#install.packages("countrycode")
+#install.packages("dplyr")
+#install.packages('httr')
+#install.packages("jsonlite")
+#install.packages("tidyverse")
+#install.packages("Rilostat")
+#install_github("ilostat/Rilostat")
+#install.packages("shiny")
+#install.packages("ggplot2")
+#install.packages("gridExtra")
+#install.packages("plotly")
+#install.packages("maps")
+library(rvest)
+library(countrycode)
+library(dplyr)
+library(tidyverse)
+library(dplyr)
+library(countrycode)
+library(httr)
+library(jsonlite)
+library(devtools)
+library(Rilostat)
+library(scales)
+library(shiny)
+library(ggplot2)
+library(plotly)
+base_url<- "https://data.un.org/Data.aspx?d=SNAAMA&f=grID%3a101%3bcurrID%3aUSD%3bpcFlag%3afalse%3byr%3a2000%2c2001%2c2002%2c2003%2c2004%2c2005%2c2006%2c2007%2c2008%2c2009%2c2010%2c2011%2c2012%2c2013%2c2014%2c2015%2c2016%2c2017%2c2018%2c2019%2c2020%2c2021%2c2022%3bitID%3a9&c=2,3,5,6&s=_crEngNameOrderBy:asc,yr:desc&v="
+
+data_part_3 <- data.frame()  # Khởi tạo data frame rỗng
+
+for (i in 1:50) {
+  url <- paste0(base_url, i)
+  page <- read_html(url)
+  
+  # Trích xuất dữ liệu từ phần tử HTML (điều chỉnh CSS selector theo yêu cầu)
+  dataset_df1 <- page %>%
+    html_nodes("table") %>%
+    html_table(fill = TRUE)
+  
+  # Gộp dữ liệu vào data frame chính
+  if (!is.null(dataset_df1[[2]])) {
+    data_part_3 <- rbind(data_part_3, dataset_df1[[2]])
+  }
+}
+
+for (i in 51:98) {
+  url <- paste0(base_url, i)
+  page <- read_html(url)
+  
+  # Trích xuất dữ liệu từ phần tử HTML (điều chỉnh CSS selector theo yêu cầu)
+  dataset_df1 <- page %>%
+    html_nodes("table") %>%
+    html_table(fill = TRUE)
+  
+  # Gộp dữ liệu vào data frame chính
+  if (!is.null(dataset_df1[[2]])) {
+    data_part_3 <- rbind(data_part_3, dataset_df1[[2]])
+  }
+}
+gpddf <- data_part_3
+#Xử lí gdpdf
+gpddf <- gpddf[, -c(3)]
+colnames(gpddf)[colnames(gpddf) == "Value"] <- "GDP"
+gpddf[, 1][gpddf[, 1] == "China (mainland)"] <- "China"
+head(gpddf,5)
+
+gdpdf1 <- data.frame(gpddf)
+#Kiểm tra liệu có giá trị null hay na
+column_names <- names(gdpdf1)
+for (col_name in column_names) {
+  num_null <- sum(is.null(gdpdf1[[col_name]]))
+  num_na <- sum(is.na(gdpdf1[[col_name]]))
+  
+  print(paste("Column:", col_name))
+  print(paste("Number of null:", num_null))
+  print(paste("Number of NA:", num_na))
+  print("")
+}
+
+gdpdf1$Country <- gdpdf1$Country
+# Chuyển đổi mã quốc gia thành khu vực
+gdpdf11 <- data.frame(gdpdf1)
+gdpdf11$Region <- countrycode(gdpdf11$Country, "country.name", "region")
+gdpdf11$Region <- ifelse(gdpdf11$Country %in% c("Mayotte", "Reunion"), "Sub-Saharan Africa", gdpdf11$Region)
+gdpdf11$Region <- ifelse(gdpdf11$Country %in% c("Saint Helena ex. dep.", "United Republic of Tanzania: Zanzibar", "Saint Helena: Tristan da Cunha"), "Sub-Saharan Africa", gdpdf11$Region)
+gdpdf11$Region <- ifelse(gdpdf11$Country %in% c("Wallis and Futuna Islands"), "East Asia & Pacific", gdpdf11$Region)
+# Nhóm các quốc gia theo khu vực và tính số lượng quốc gia trong mỗi khu vực
+grouped_gdpdf11 <- gdpdf11 %>%
+  group_by(Region) %>%
+  summarize(Num_Countries = n())
+
+print(grouped_gdpdf11)
+merged_gdpdf <- left_join(gdpdf11, grouped_gdpdf11, by = "Region")
+
+# Hiển thị bảng kết quả
+merged_gdpdf
+merged_gdpdf <- merged_gdpdf %>%
+  mutate(GDP = gsub(",", "", GDP)) %>%
+  mutate(GDP = as.numeric(GDP))
+head(merged_gdpdf)
+str(merged_gdpdf)
+summary(merged_gdpdf)
+gdp_df_full <- merged_gdpdf[, c("Country", "Year", "GDP", "Region")]
+head(gdp_df_full)
+gdp_df <- merged_gdpdf[, c("Country", "Year", "GDP")]
+dfgdp <- filter(gdp_df, Year == 2022)
+head(dfgdp)
+# Group the dataset by Region and Year, and calculate the sum of Gender values
+GDP_continent <- merged_gdpdf %>%
+  group_by(Region, Year) %>%
+  summarise(GDP = sum(GDP))
+
+# View the new data frame
+print(GDP_continent)
+  ggplot(GDP_continent, aes(x = Year, y = GDP, group = Region)) +
+    geom_line(aes(color = Region), size = 1) +
+    geom_point(aes(color = Region), size = 2) +
+    theme(legend.position = "top")
+#So sánh GDP giữa các châu lục
+# Filter data for the year 2022
+GDP_cont_2022 <- filter(GDP_continent, Year == 2021)
+
+# Create the bar chart
+ggplot(GDP_cont_2022, aes(x = Region, y = GDP)) +
+  geom_bar(stat = "identity", fill = "#69b3a2") +
+  labs(title = "GDP by Continent in 2022",
+       x = "Region",
+       y = "GDP") +
+  theme(plot.width = 10, plot.height = 6,
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+world_map <- map_data("world")
+
+# Vẽ biểu đồ map
+p <- plot_ly(dfgdp, z = ~GDP, text = ~paste("Country: ", Country, "<br>GDP: ", GDP),
+             locations = ~Country, type = "choropleth", locationmode = "country names") %>%
+  layout(geo = list(scope = "world"))
+
+p
+#Xác định 5 QG có giá trị GDP trung bình cao nhất từ năm 2012 đến năm 2022 
+gdp_df_top <- gdp_df_full %>%
+  filter(Year >= 2012 & Year <= 2022) %>%
+  group_by(Country) %>%
+  summarise(mean_GDP = mean(GDP)) %>%
+  top_n(5, mean_GDP)
+gdp_df_top
+dp_df_top <- gdp_df_full %>%
+  group_by(Country) %>%
+  summarise(mean_GDP = mean(GDP)) %>%
+  top_n(5, mean_GDP) %>%
+  inner_join(gdp_df_full, by = "Country")
+
+ggplot(dp_df_top, aes(x = Year, y = GDP, group = Country, color = Country)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  theme(legend.position = "top")
+
+#Vẽ Biểu đồ thể hiện GDP của các QG thuộc Châu lục Đông á Thái Bình Dương
+gdp_country <- filter(gdp_df_full, Region == "East Asia & Pacific", Year == 2022)
+gdp_country <- gdp_country%>%
+  mutate(GDP = GDP / 1e6)
+print(gdp_country)
+plt <- ggplot(gdp_country) +
+  geom_col(aes(GDP, Country), fill = "deeppink", width = 0.6)
+plt
+
+chart_gdp <- merged_gdpdf[, c("Country", "Year", "GDP",'Region')]
+
+
+# em
+#install.packages("Rilostat")
+#if(!require(devtools)){install.packages('devtools')}
+library(devtools)
+#install_github("ilostat/Rilostat")
+library(Rilostat)
+#install.packages("countrycode")
+library(countrycode)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+library(scales)
+library(plotly)
+library(shiny)
+
+toc <-get_ilostat_toc(search = 'Employment by sex and age')
+employ <- get_ilostat("EMP_2EMP_SEX_AGE_NB_A") %>%
+  rename(Country = ref_area) %>%
+  rename(Sex = sex) %>%
+  mutate(Sex = case_when(
+    Sex == "SEX_M" ~ "Male",
+    Sex == "SEX_F" ~ "Female",
+    TRUE ~ Sex
+  )) %>%
+  filter(Sex %in% c("Male", "Female")) %>%
+  rename(Age = classif1) %>%
+  filter(Age == "AGE_YTHADULT_YGE15") %>%
+  rename(Year = time) %>%
+  filter(Year >= 2000 & Year <= 2022) %>%
+  rename(Employment = obs_value) %>%
+  select(Country, Sex, Year, Employment) %>%
+  arrange(Country, desc(Year)) %>%
+  mutate(Country = countrycode(Country, "iso3c", "country.name"))
+employ <- employ %>% filter(!is.na(Country))
+employ$Region <- countrycode(employ$Country, "country.name", "region")
+employ <- employ %>% mutate(Region = ifelse(Country == "Western Sahara", "Middle East & North Africa", Region))
+missing_values <- colSums(is.null(employ) | is.na(employ))
+employ <- employ %>%
+  group_by(Region) %>%
+  mutate(nums_country_region = n_distinct(Country))
+# Tạo dataframe mới từ dữ liệu "employ" với các cột chỉ định
+dfe <- employ %>%
+  select(Country, Year, Sex, Employment, Region) %>%
+  group_by(Country, Year, Region) %>%
+  summarise(Employment = sum(ifelse(Sex == "Female", Employment, 0)) / sum(ifelse(Sex == "Male", Employment, 0)))
+dfe <- dfe %>%
+  left_join(employ %>% filter(Sex == "Female") %>% select(Country, Year, Employment), by = c("Country", "Year", "Region")) %>%
+  rename(Employment = Employment.x) %>%
+  mutate(TotalEmployment = ifelse(!is.na(Employment.y), Employment.y, 0)) %>%
+  select(-Employment.y)
+ 
+# Tổng số lượng việc làm của Female theo từng khu vực và năm
+employ_region <- employ %>%
+  group_by(Region, Year) %>%
+  summarize(TotalEmployment = sum(Employment, na.rm = TRUE))
+ggplot(employ_region, aes(x = Year, y = TotalEmployment, group = Region, color = Region)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(x = "Năm", y = "Tổng số lượng việc làm (Female)", color = "Khu vực") +
+  scale_x_discrete(breaks = c("2000", "2005", "2010", "2015", "2020")) +
+  theme(legend.position = "top")
+
+#Số lượng phụ nữ có việc làm của các quốc gia thuộc khu vực East Asia & Pacific
+options(repr.plot.width = 6, repr.plot.height = 14)  
+ggplot(dfe %>% filter(Region == "East Asia & Pacific"), aes(x = TotalEmployment, y = Country)) +
+  geom_bar(stat = "identity", fill = "lightpink") +
+  labs(title = "Tổng số việc làm (Female) ở Đông Á và Thái Bình Dương") +
+  labs(x = "Tổng số việc làm", y = "Quốc gia") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5))
+
+#Tương quan của GDP với Employment
+ratedf <- merge(merge(dfe, dfgdp, by = c("Country", "Year"), all = TRUE), 
+                dfgen, by = c("Country", "Year"), all = TRUE)
+ratedf <- na.omit(ratedf)
+top_country_2000 <- ratedf %>%
+  filter(Year == 2000) %>%
+  arrange(desc(Employment)) %>%
+  slice(1)
+top_country_2022 <- ratedf %>%
+  filter(Year == 2022) %>%
+  arrange(desc(Employment)) %>%
+  slice(1)
+ratedf %>%
+  filter(Year == 2000 | Year == 2022) %>%
+  mutate(pop_m = Gender / 1e6) %>%
+  ggplot(aes(x = GDP, y = Employment)) +
+  geom_point(aes(size = pop_m, color = Region), alpha = 0.5) +
+  geom_smooth(method = "auto") +
+  scale_x_continuous(labels = comma) +
+  labs(title = 'Tỷ lệ việc làm của Nữ và GDP của các quốc gia năm 2000 và 2022') +
+  labs(x = "GDP ($/Năm)", y = "Tỷ lệ việc làm của Nữ (%)") +
+  labs(color = "Khu vực", size = "Dân số (Triệu người)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  facet_grid(Year~.)+
+  geom_text_repel(data = top_country_2000, aes(label = Country), nudge_x = 5000, nudge_y = -5) +
+  geom_text_repel(data = top_country_2022, aes(label = Country), nudge_x = 5000, nudge_y = -5)
+
+
+# World Map
+world_map <- map_data("world")
+mapemp <- subset(dfe, Year =="2022")
+p <- plot_ly(mapemp, z = ~Employment, text = ~paste("Country: ", Country, "<br>Employment: ", Employment),
+             locations = ~Country, type = "choropleth", locationmode = "country names")
+p <- layout(p, geo = list(scope = "world"))
+p
+
+
+
+# SEAT
+#install.packages('httr')
+#install.packages("jsonlite")
+#install.packages("countrycode")
+#install.packages("dplyr")
+#install.packages("tidyverse")
+library(tidyverse)
+library(dplyr)
+library(countrycode)
+library(httr)
+library(jsonlite)
+library(jsonlite)
+
+library(httr)
+library(jsonlite)
+
+response <- GET("http://api.data.ipu.org/v1/chambers?page[size]=1000000&page[number]=1&fields=current_women_percent%2Ccountry_code%2Cparliament%2Cparliament_country&filter=struct_parl_status.term%3Aeq%3Alower_chamber")
+
+status_code <- status_code(response)
+if (status_code == 200) {
+  # Lấy dữ liệu từ phản hồi
+  data <- content(response, as = "text")
+  # Xử lý dữ liệu theo nhu cầu của bạn
+  parsed_data <- fromJSON(data)
+  print(parsed_data)
+} else {
+  # Xử lý khi yêu cầu không thành công
+  print("Yêu cầu không thành công. Mã trạng thái:", status_code)
+}
+
+data <- fromJSON(content(response, "text"))
+
+current_women_percent <- data$data$attributes$current_women_percent
+
+list_of_data <- current_women_percent
+
+list_of_data1 <- list_of_data
+
+countries <- c(
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
+  "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain",
+  "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
+  "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei Darussalam",
+  "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon",
+  "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia",
+  "Comoros", "Congo", "Costa Rica", "Côte d'Ivoire", "Croatia", "Cuba", "Cyprus",
+  "Czech Republic", "Democratic People's Republic of Korea",
+  "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica",
+  "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea",
+  "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
+  "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada",
+  "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras",
+  "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland",
+  "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya",
+  "Kiribati", "Kuwait", "Kyrgyzstan", "Lao People's Democratic Republic",
+  "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania",
+  "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
+  "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+  "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+  "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger",
+  "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Panama",
+  "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+  "Qatar", "Republic of Korea", "Republic of Moldova", "Romania", "Russian Federation",
+  "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines",
+  "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia",
+  "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands",
+  "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname",
+  "Sweden", "Switzerland", "Syrian Arab Republic", "Tajikistan", "Thailand",
+  "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey",
+  "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
+  "United Kingdom", "United Republic of Tanzania", "United States",
+  "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Viet Nam",
+  "Yemen", "Zambia", "Zimbabwe"
+)
+
+list_of_data1 <- lapply(1:length(list_of_data1), function(i) {
+  list_of_data1[[i]]$missing_reason <- countries[i]
+  return(list_of_data1[[i]])
+})
+
+#install.packages("tidyverse")
+library(tidyverse)
+final_df <- data.frame()  # Khởi tạo dataframe rỗng
+
+for (i in 1:193) {
+  df <- list_of_data1[[i]]
+  df <- subset(df, date_valid_until > as.Date('2000-01-01'))
+  df <- df[, -c(4, 6)]
+  df$date_from <- as.Date(df$date_from)
+  df$date_to <- as.Date(df$date_to)
+  
+  # Chuyển đổi date_from và date_to sang dạng năm
+  df1 <- df %>%
+    mutate(date_from = as.integer(format(date_from, "%Y")),
+           date_to = as.integer(format(date_to, "%Y")))
+  filtered_df <- df1 %>%
+    filter(date_to == date_from)
+  
+  filtered_dfa <- filtered_df
+  
+  filtered_df <- df1 %>%
+    filter(date_to == date_from) %>%
+    group_by(date_to) %>%
+    summarize(avg_value = mean(value))
+  
+  filtered_df <- filtered_df %>%
+    rename(date = date_to)
+  
+  filtered_df <- filtered_df %>%
+    rename(value = avg_value)
+  
+  filtered_df <- left_join(filtered_df, filtered_dfa %>% select(date_to, missing_reason), by = c("date" = "date_to"))
+  filtered_df <- filtered_df %>%
+    distinct() %>%
+    filter(!duplicated(.))
+  
+  filtered_df$date <- as.integer(filtered_df$date)
+  filtered_df1 <- df1 %>%
+    filter(date_from != date_to)
+  
+  filtered_df2 <- filtered_df1 %>%
+    filter(date_to - date_from >= 2)
+  new_df <- filtered_df2 %>%
+    mutate(year = date_to - date_from + 1) %>%
+    group_by(value, year) %>%
+    summarise(date = list(seq(from = date_from[1], to = date_to[1], by = 1))) %>%
+    tidyr::unnest(cols = c(date)) %>%
+    select(-year)
+  new_df <- left_join(new_df, filtered_df2 %>% select(date_to, missing_reason), by = c("date" = "date_to"))
+  unique_date_to <- unique(filtered_df$date)
+  unique_date <- unique(new_df$date)
+  
+  new_dates <- setdiff(unique_date, unique_date_to)
+  
+  new_dates_df <- filter(new_df, date %in% new_dates)
+  merged_df <- rbind( filtered_df, new_dates_df)
+  merged_df <- subset(merged_df, date >= as.integer('2000'))
+  merged_df <- merged_df %>% arrange(date)
+  merged_df <- merged_df %>% replace_na(list(missing_reason = unique(merged_df$missing_reason[!is.na(merged_df$missing_reason)])))
+  final_df <- rbind(final_df, merged_df)
+}
+
+
+
+
+final_df <- data.frame(final_df)
+final_df <- distinct(final_df, date, missing_reason, .keep_all = TRUE)
+final_df
+
+final_df <- rename(final_df, country = missing_reason)
+
+seatdf <- final_df
+
+column_names <- names(seatdf)
+print(column_names)
+
+for (col_name in column_names) {
+  num_null <- sum(is.null(seatdf[[col_name]]))
+  num_na <- sum(is.na(seatdf[[col_name]]))
+  
+  print(paste("Column:", col_name))
+  print(paste("Number of null:", num_null))
+  print(paste("Number of NA:", num_na))
+  print("")
+}
+seatdf1 <- data.frame(seatdf)
+seatdf1$Region <- countrycode(seatdf1$country, "country.name", "region")
+# Handle specific countries
+seatdf1$Region <- ifelse(seatdf1$country %in% c("Micronesia"), "East Asia & Pacific", seatdf1$Region)
+seatdf1$Region <- ifelse(seatdf1$country %in% c("Réunion"), "Some Region", seatdf1$Region)
+
+# Group countries by region and calculate the number of unique countries in each region
+grouped_seatdf1 <- seatdf1 %>%
+  group_by(Region) %>%
+  summarize(Num_Countries = n_distinct(country))
+
+merged_seatdf <- left_join(seatdf1, grouped_seatdf1, by = "Region")
+
+# Hiển thị bảng kết quả
+merged_seatdf
+
+
+merged_seatdf <- merged_seatdf %>%
+  rename(Country = country, Year = date, Seat = value)
+summary(merged_seatdf)
+
+filter_2022 <- merged_seatdf %>% filter(Year == 2022)
+seat_sum_by_region <- filter_2022 %>% group_by(Region) %>% summarize(Total_Seat = sum(Seat))
+
+
+ggplot(seat_sum_by_region, aes(x = reorder(Region, -Total_Seat), y = Total_Seat)) +
+  geom_bar(stat = "identity", fill = "aquamarine3") +
+  geom_text(aes(label = round(Total_Seat, 2)), vjust = -0.5, color = "#FF6600") +
+  labs(title = "Tổng số ghế theo châu lục vào năm 2022", x = "Châu lục", y = "Tổng số ghế") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+library(dplyr)
+
+sum_by_continent <- merged_seatdf %>%
+  group_by(Year, Region) %>%
+  summarize(Total_Seat = sum(Seat))
+  
+ggplot(sum_by_continent, aes(x = Year, y = Total_Seat, group = Region)) +
+  geom_line(aes(color = Region), size = 1) +
+  geom_point(aes(color = Region), size = 2) +
+  labs(title = "Tổng số ghế theo châu lục giai đoạn 2000 - 2020 ", x = "Châu lục", y = "Tổng số ghế") +
+  theme(legend.position = "top")
+
+abc <- merged_seatdf %>%
+  filter(Region == "Sub-Saharan Africa") %>%
+  group_by(Year, Country) %>%
+  summarize(Total_Seat = sum(Seat)) %>%
+  group_by(Country)
+
+
+
+
+dfs <- merged_seatdf[, c("Country", "Year", "Seat")]
+
+
+
+
+# Tải dữ liệu bản đồ
+
+world_map <- map_data("world")
+
+# Kết hợp dữ liệu thu nhập và bản đồ thế giới
+mapseat <- subset(merged_seatdf, Year =="2020")
+
+library(plotly)
+
+p <- plot_ly(mapseat, z = ~Seat, text = ~paste("Country: ", Country, "<br>Seat: ", Seat),
+             locations = ~Country, type = "choropleth", locationmode = "country names") 
+
+p <- add_annotations(p, x = 0.5, y = -0.1, text = "World Map", showarrow = FALSE, 
+                     font = list(size = 16), xref = "paper", yref = "paper")
+
+p
+
+```
+
+## **1. Giới thiệu**
+
+### ***1.1. Giới thiệu đề tài***
+
+-   Bình đẳng giới và phát triển kinh tế là hai khái niệm quan trọng trong lĩnh vực nghiên cứu xã hội. Bình đẳng giới đề cập đến sự công bằng và công nhận đầy đủ cho nam giới và nữ giới trong mọi lĩnh vực của cuộc sống, bao gồm cả quyền truy cập vào cơ hội, tài nguyên và quyền lực.
+-   Đề tài "Bình đẳng giới và sự phát triển kinh tế của các quốc gia trên thế giới" tập trung vào mối quan hệ giữa hai yếu tố này và nghiên cứu tác động của bình đẳng giới đến sự phát triển kinh tế của các quốc gia trên toàn cầu (Cụ thể là GDP).
+-   Đề tài sẽ điều tra mối liên hệ giữa chỉ số bình đẳng giới và các chỉ số phát triển kinh tế trong các quốc gia trên thế giới
+
+### ***1.2. Bộ dữ liệu***
+
+-   Nhóm tiến hành thực hiện thu thập dữ liệu từ các nguồn như UN Data, ILostat,...Kết quả dữ liệu thu thập bao gồm 4 tập dataframe với các giá trị như Gender, Employment, Seats, GDP.
+-   Thu thập trong giai đoạn từ 2000 đến 2022 đối với tất các quốc gia trên thế giới
+-   2 Phương pháp: API, Crawl data qua HTML
+
+#### *1.2.1. Biến Gender*
+
+Tập dữ liệu về giới tính (Gender) bao gồm thông tin về số lượng nam giới (male) và nữ giới (female) của các quốc quốc gia trong khoảng thời gian cụ thể. Các trường thông tin dữ liệu bao gồm: Tên quốc gia, Năm, Giới tính, Số lượng nam và số lượng nữ
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+head(gender_dffull, 5)
+```
+
+#### *1.2.2. Biến Employment*
+
+Tập dữ liệu về Số người có việc làm có lương (Employment) bao gồm số việc làm có lương giữa hai giới tính là Nữ (Female) và Nam(Female) của các quốc gia trong một khoảng thời gian cụ thể. Bộ dữ liệu được lấy từ ILOSTAT
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+
+head(employ, 5)
+```
+
+#### *1.2.3.Seats*
+
+Tập dữ liệu đại diện cho số lượng phụ nữ trong một Quốc hội (được thể hiện qua số ghế dành cho Quốc hội là nữ). Dữ liệu được lấy từ API của APU Parline ( một tổ chức chuyên cung cấp dữ liệu toàn cầu về các vấn đề trong bầu cử quốc hội)
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+head(merged_seatdf, 5)
+```
+
+#### *1.2.4. Biến GDP*
+
+Tập dữ liệu về GDP (Gross Domestic Product) bao gồm thông tin về giá trị của tất cả các hàng hóa và dịch vụ được sản xuất trong một quốc gia trong một khoảng thời gian cụ thể. Bộ dữ liệu lấy từ UN Data bằng phương pháp crawl
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+head(merged_gdpdf, 5)
+```
+
+### ***1.3. Thống kê bộ dữ liệu***
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+
+pie_chart <- ggplot(grouped_seatdf1, aes(x = "", y = Num_Countries, fill = Region)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  scale_fill_manual(values = c("#FF6666", "#66FF66", "#6666FF", "#FFFF66", "#FF99CC", "#666666", "#9933FF")) +
+  labs(fill = "Region", y = "Number of Countries", title = "Number of Countries in Each Region") +
+  geom_text(aes(label = Num_Countries), position = position_stack(vjust = 0.5), color = "black", fontface = "bold")
+
+print(pie_chart)
+```
+
+## 2. GENDER
+
+-   Khi trực quan hóa mẫu dữ liệu về gender tại các Châu lục, nhóm nhận thấy Châu lục có số lượng dân số lớn nhất là East Asia & Pacific. Tỷ lệ Nam - Nữ tại các quốc gia có sự chênh lệch như tỷ lệ này không quá lớn. 
+
+-   Các Châu lục có tỉ lệ Nữ lớn hơn Nam là các Châu lục: Sub-Saharan Africa, North America, Latin America & Caribbean, Europe & Central Asia.
+
+-   Ngược lại, các Châu lục có tỉ lệ Nam lớn hơn là các Châu lục: South Asia, Middle East & North Africa, East Asia & Pacific
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+
+ggplot(male_female_pyramid,
+       aes(x = Gender,
+           y = Region,
+           fill = Sex)) +
+  geom_col() +
+  geom_text(data = subset(male_female_pyramid, Sex == "Female"),
+            aes(label = Gender),
+            position = position_nudge(x = -0.05, y = 0),
+            size = 3) +
+  geom_text(data = subset(male_female_pyramid, Sex == "Male"),
+            aes(label = Gender),
+            position = position_nudge(x = 0.05, y = 0),
+            size = 3) +
+  theme(text = element_text(size = 4))
+```
+
+Tại East Asia & Pacific, tỷ lệ dân số có sự chênh lệch rõ rệt giữa các quốc gia trong khu vực. Quốc gia có dân số cao nhất là Trung Quốc, quốc gia này cũng cho thấy tỷ lệ Nữ cao hơn tỉ lệ của Nam. Đây cũng là một trong những số ít các quốc gia có tỷ lệ Nữ cao hơn Nam tại Châu lục này.
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(filtered_data, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in East Asia & Pacific (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Tại Europe & Central Asia, tỷ lệ dân số cũng có sự chênh lệch rõ rệt giữa các quốc gia trong khu vực. Quốc gia có dân số cao nhất là Liên bang Nga, trong đó tỷ lệ Nam cao hơn tỷ lệ Nữ với độ chênh lệch tương đối lớn. Các quốc gia có dân số cao trong khu vực này lần lượt là: Thổ Nhĩ Kỳ, Tây Ban Nha, Ý và Đức. Theo đó, tỷ lệ Nam trong các quốc gia này cũng cao hơn tỷ lệ nữ.
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+
+ggplot(EuropeCentralAsia, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in Europe Central Asia (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Tại Latin America & Caribbean, đa số các quốc gia trong khu vực này đều có tỷ lệ nam cao hơn tỷ lệ nữ, tuy nhiên sự chênh lệch không quá lớn. Quốc gia có dân số cao nhất là Brazil. Các quốc gia có dân số cao trong khu vực này lần lượt là: Mexico, Colombia. Các quốc gia còn lại đều có tỷ lệ nam và nữ rất thấp, chỉ bằng ⅓ hoặc ¼ so với Brazil.
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(LatinAmericaCaribbean, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in Latin America & Caribbean (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+
+Tại Middle East & North Africa, đa số các quốc gia trong khu vực này đều có tỷ lệ nam thấp hơn tỷ lệ nữ, tuy nhiên sự chênh lệch không quá lớn. Quốc gia có dân số cao nhất là Ai Cập. Các quốc gia có dân số cao trong khu vực này lần lượt là: Iran và Ả Rập Xê-út và Maroc. Các quốc gia còn lại đều có tỷ lệ nam và nữ rất thấp, chỉ bằng ⅕ hoặc ⅙ so với Ai Cập.
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(MiddleEastNorthAfrica, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in Middle East & North Africa (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Tại North America, tỷ lệ nam và nữ giữa các quốc gia có sự chênh lệch lớn. Quốc gia có dân số cao nhất là Mỹ, xếp sau là Canada. Lãnh thổ hải ngoại thuộc Anh có dân số rất nhỏ, khoảng 63.764 người.
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(NorthAmerica, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in North America (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+
+```
+
+Tại South Asia, tỷ lệ nam và nữ giữa các quốc gia có sự chênh lệch rất lớn. Quốc gia có dân số cao nhất là Ấn Độ. Các quốc gia còn lại chỉ bằng ⅕ so với Ấn Độ.
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(SouthAsia, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in South Asia (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Tại Sub-Saharan Africa (Hạ Saharan), tỷ lệ nam và nữ giữa các quốc gia có sự chênh lệch tương đối lớn. Quốc gia có dân số cao nhất là Cộng hòa Liên bang Nigeria, xếp sau là Cộng hoà dân chủ Congo và Cộng hòa Dân chủ Liên bang Ethiopia.
+
+```{r}
+ggplot(SubSaharanAfrica, aes(x = Country.or.Area, y = Gender, fill = Sex)) +
+  geom_col(position = "dodge") +
+  labs(title = "Gender Distribution in Sub-Saharan Africa (2021)", x = "Country", y = "Gender") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e"), labels = c("Male", "Female")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+**TOP 5 QUỐC GIA CÓ FEMALE LỚN NHẤT THẾ GIỚI\
+**Ngoài ra, nhóm cũng tìm ra 5 quốc gia có tỷ lệ nữ cao nhất trên toàn thế giới: Bao gồm Ấn Độ (châu Á), Trung Quốc (Đông Á), Mỹ (Bắc Mỹ), Nhật Bản (châu Á) và Indonesia (châu Á).
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+chart <- ggplot(top_countries, aes(x = Country.or.Area, y = Total_Females)) +
+  geom_col(fill = "coral2") +
+  geom_text(aes(label = Total_Females), vjust = -0.5, color = "black", size = 3.5) +
+  labs(title = "Top 5 Countries with Highest Number of Females", x = "Country", y = "Total Females")
+chart
+```
+
+WORLD MAP SEAT
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+p <- plot_ly(merged_genderdf, z = ~Gender, text = ~paste("Country: ", Country.or.Area, "<br>Female: ", Gender),
+             locations = ~Country.or.Area, type = "choropleth", locationmode = "country names") %>%
+  layout(geo = list(scope = "world"))
+
+p
+```
+
+## 3. EMPLOYMENT
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(employ_region, aes(x = Year, y = TotalEmployment, group = Region, color = Region)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(x = "Năm", y = "Tổng số lượng việc làm (Female)", color = "Khu vực") +
+  scale_x_discrete(breaks = c("2000", "2005", "2010", "2015", "2020")) +
+  theme(legend.position = "top")
+```
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+options(repr.plot.width = 6, repr.plot.height = 14)  
+ggplot(dfe %>% filter(Region == "East Asia & Pacific"), aes(x = TotalEmployment, y = Country)) +
+  geom_bar(stat = "identity", fill = "lightpink") +
+  labs(title = "Tổng số việc làm (Female) ở Đông Á và Thái Bình Dương") +
+  labs(x = "Tổng số việc làm", y = "Quốc gia") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5))
+```
+
+WORLD MAP VỀ TỈ LỆ PHỤ NỮ CÓ VIỆC LÀM TRÊN THẾ GIỚI NĂM 2022
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+world_map <- map_data("world")
+mapemp <- subset(dfe, Year =="2022")
+p <- plot_ly(mapemp, z = ~Employment, text = ~paste("Country: ", Country, "<br>Employment: ", Employment),
+             locations = ~Country, type = "choropleth", locationmode = "country names")
+p <- layout(p, geo = list(scope = "world"))
+p
+```
+
+## 4. SEATS
+
+
+```{r}
+ggplot(seat_sum_by_region, aes(x = reorder(Region, -Total_Seat), y = Total_Seat)) +
+  geom_bar(stat = "identity", fill = "aquamarine3") +
+  geom_text(aes(label = round(Total_Seat, 2)), vjust = -0.5, color = "#FF6600") +
+  labs(title = "Tổng số ghế theo châu lục vào năm 2022", x = "Châu lục", y = "Tổng số ghế") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(sum_by_continent, aes(x = Year, y = Total_Seat, group = Region)) +
+  geom_line(aes(color = Region), size = 1) +
+  geom_point(aes(color = Region), size = 2) +
+  labs(title = "Tổng số ghế theo châu lục giai đoạn 2000 - 2020 ", x = "Châu lục", y = "Tổng số ghế") +
+  theme(legend.position = "top")
+
+```
+
+```{r}
+summary(merged_seatdf)
+```
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+plot_ly() %>%
+  add_lines(data = average_line, x = ~Year, y = ~Avg_Total_Seat, name = "Average", line = list(color = "blue")) %>%
+  add_lines(data = largest_countries, x = ~Year, y = ~Total_Seat, color = ~Country, name = ~Country) %>%
+  layout(title = list(
+    text = "Top 5 quốc gia trong khu vực Sub-Saharan Africa có biến động cao trong số ghế",
+    x = 0.5),
+    xaxis = list(title = "Năm"),
+    yaxis = list(title = "%thay đổi của số ghế"),
+    legend = list(orientation = "h", x = 0.1, y = 1.1),
+    margin = list(t = 100, b = 100))
+
+```
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+world_map <- map_data("world")
+
+# Kết hợp dữ liệu thu nhập và bản đồ thế giới
+mapseat <- subset(merged_seatdf, Year =="2020")
+
+# Vẽ biểu đồ map
+p <- plot_ly(mapseat, z = ~Seat, text = ~paste("Country: ", Country, "<br>Seat: ", Seat),
+             locations = ~Country, type = "choropleth", locationmode = "country names") %>%
+     layout(geo = list(scope = "world"))
+
+p
+```
+
+## 5. GDP
+
+Có thể thấy các GDP của các Quốc gia có sự phân bố khá đồng đều, tuy nhiên có một số Quốc gia có giá trị GDP lớn trên 20T như Trung Quốc,...
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+p <- plot_ly(dfgdp, z = ~GDP, text = ~paste("Country: ", Country, "<br>GDP: ", GDP),
+             locations = ~Country, type = "choropleth", locationmode = "country names") %>%
+  layout(geo = list(scope = "world"))
+
+p
+```
+
+Biểu đồ sau mô tả sự tăng trưởng kinh tế giữa các Châu lục. Có thể thấy, các Châu lục như Châu u, Bắc Mỹ (Bao gồm: Canada, Hoa Kỳ, Mexico), Đông Á Thái Bình Dương có sự tăng trưởng cao hơn so với những Châu lục khác.
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+  ggplot(GDP_continent, aes(x = Year, y = GDP, group = Region)) +
+    geom_line(aes(color = Region), size = 1) +
+    geom_point(aes(color = Region), size = 2) +
+    theme(legend.position = "top")
+  
+```
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(GDP_cont_2022, aes(x = Region, y = GDP)) +
+  geom_bar(stat = "identity", fill = "#69b3a2") +
+  labs(title = "GDP by Continent in 2022",
+       x = "Region",
+       y = "GDP") +
+  theme(plot.width = 10, plot.height = 6,
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+      
+```
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+ggplot(dp_df_top, aes(x = Year, y = GDP, group = Country, color = Country)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  theme(legend.position = "top")
+
+
+```
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+plt <- ggplot(gdp_country) +
+  geom_col(aes(GDP, Country), fill = "deeppink", width = 0.6)
+plt
+```
+
+
+**MỐI QUAN HỆ GIỮA TỶ LỆ VIỆC LÀM VÀ GIỮ CHỨC TRONG QUỐC HỘI ĐỐI VỚI GDP**
+
+![](images/Tương quan GDP Em.png)
